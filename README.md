@@ -47,3 +47,80 @@ def restore(self, state):
       After "C", when undo → "C" is discarded, and "B" is restored.
 
       This matches the Undo behavior of editors.
+________________________________________________________________________________________________________________
+## 2. State Pattern
+
+### 🎯 Purpose
+The State Pattern allows an object to change its behavior depending on its internal state.
+It helps avoid long if/else or switch statements by encapsulating each state in a separate class.
+
+In my state2 file example, the behavior of mouse_down and mouse_up changes depending on the currently selected tool (Selection, Brush, Eraser).
+
+### 🔑 Roles in My Code
+#### Context (ToolContext)
+    The main class that holds a reference to the current state.
+
+    Delegates actions (mouse_down, mouse_up) to the current state.
+
+    Allows switching the state dynamically.
+
+```python
+def __init__(self):
+    self.state = EraserTool()
+
+def mouse_down(self):
+    print(self.state.mouse_down())
+
+def mouse_up(self):
+    print(self.state.mouse_up())
+```
+#### State (Abstract Class)
+
+    Defines the common interface (mouse_down, mouse_up) that all concrete states must implement.
+
+    In my code → the abstract State class ensures all tools behave consistently.
+```python
+class State(ABC):
+    @abstractmethod
+    def mouse_down(self): pass
+
+    @abstractmethod
+    def mouse_up(self): pass
+```
+#### Concrete States (SelectionTool, BrushTool, EraserTool)
+
+    Each concrete state represents a specific tool.
+
+    They implement the behavior differently for mouse_down and mouse_up.
+##### Examples in State1 File:
+
+    SelectionTool → shows selection icon, draws rectangle.
+
+    BrushTool → shows brush icon, draws with brush.
+
+    EraserTool → shows eraser icon, erases drawing.
+```python
+class BrushTool(State):
+    def mouse_down(self):
+        return "Brush Icon Showing"
+
+    def mouse_up(self):
+        return "Drawing with Brush"
+```
+## 📌 Important Detail (Behavior Switching)
+
+The behavior depends entirely on the current state:
+
+    If context has SelectionTool:
+
+    mouse_down() → “Selection Icon Showing”
+
+    mouse_up() → “Drawing Rectangle”
+
+    If context switches to BrushTool:
+
+         mouse_down() → “Brush Icon Showing”
+
+         mouse_up() → “Drawing with Brush”
+
+    This makes it very easy to add new tools without modifying existing code.
