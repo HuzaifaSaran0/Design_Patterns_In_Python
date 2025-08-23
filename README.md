@@ -107,7 +107,7 @@ class BrushTool(State):
     def mouse_up(self):
         return "Drawing with Brush"
 ```
-## 📌 Important Detail (Behavior Switching)
+### 📌 Important Detail (Behavior Switching)
 
 The behavior depends entirely on the current state:
 
@@ -124,3 +124,107 @@ The behavior depends entirely on the current state:
          mouse_up() → “Drawing with Brush”
 
     This makes it very easy to add new tools without modifying existing code.
+_________________________________________________________________________________________________________________________
+## 3. Iterator Pattern
+### 🎯 Purpose
+
+The Iterator Pattern provides a way to access elements of a collection (list, history, playlist, etc.) one at a time without exposing the underlying details of how the collection is stored.
+
+    Instead of looping directly over an array or list, you use an Iterator object that gives you control with methods like:
+
+    has_next() → Check if more items exist
+
+    next() → Get the next item
+
+    current() → Look at the current item
+
+This makes your code cleaner, flexible, and independent of the collection’s internal structure (array, linked list, database, etc.).
+
+In my browser history example, the iterator is used to go through visited URLs one by one, without directly touching the list inside BrowserHistory.
+
+### 🔑 Roles in My Code
+
+#### Collection (BrowserHistory)
+   Stores the actual data (list of URLs).
+
+Provides a method create_iterator() to give an iterator for traversal.
+
+Hides internal storage (client doesn’t know it’s a list).
+```python
+class BrowserHistory:
+    def __init__(self):
+        self._history = []
+
+    def push(self, url):
+        self._history.append(url)
+
+    def create_iterator(self):
+        return ListIterator(self._history)
+```
+
+#### Iterator Interface (Iterator)
+
+Defines the common methods every iterator must have:
+
+    has_next()
+
+    current()
+
+    next()
+
+This ensures all iterators behave consistently.
+```python
+class Iterator(ABC):
+    @abstractmethod
+    def has_next(self): pass
+
+    @abstractmethod
+    def current(self): pass
+
+    @abstractmethod
+    def next(self): pass
+```
+#### Concrete Iterator (ListIterator)
+
+    Implements the actual traversal logic.
+
+    Keeps track of position/index in the collection.
+
+    Knows how to return items one by one.
+```python
+class ListIterator(Iterator):
+    def __init__(self, items):
+        self._items = items
+        self._index = 0
+
+    def has_next(self):
+        return self._index < len(self._items)
+
+    def current(self):
+        return self._items[self._index]
+
+    def next(self):
+        if self.has_next():
+            item = self._items[self._index]
+            self._index += 1
+            return item
+```
+#### 4. Client (Code Using Iterator)
+    Doesn’t care how items are stored.
+    Only uses the iterator’s methods (has_next, next).
+```python
+history = BrowserHistory()
+history.push("a")
+history.push("b")
+history.push("c")
+
+iterator = history.create_iterator()
+while iterator.has_next():
+    print(iterator.next())
+```
+### 📌 Important Detail (Encapsulation of Traversal)
+The client never touches the raw list (_history).
+
+If tomorrow BrowserHistory stores items in a linked list or database, the client code won’t change.
+
+It will still work with the iterator.
