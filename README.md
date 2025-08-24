@@ -144,7 +144,7 @@ In my browser history example, the iterator is used to go through visited URLs o
 
 ### 🔑 Roles in My Code
 
-#### Collection (BrowserHistory)
+#### 1. Collection (BrowserHistory)
    Stores the actual data (list of URLs).
 
 Provides a method create_iterator() to give an iterator for traversal.
@@ -162,7 +162,7 @@ class BrowserHistory:
         return ListIterator(self._history)
 ```
 
-#### Iterator Interface (Iterator)
+#### 2. Iterator Interface (Iterator)
 
 Defines the common methods every iterator must have:
 
@@ -184,7 +184,7 @@ class Iterator(ABC):
     @abstractmethod
     def next(self): pass
 ```
-#### Concrete Iterator (ListIterator)
+#### 3. Concrete Iterator (ListIterator)
 
     Implements the actual traversal logic.
 
@@ -226,5 +226,91 @@ while iterator.has_next():
 The client never touches the raw list (_history).
 
 If tomorrow BrowserHistory stores items in a linked list or database, the client code won’t change.
+_________________________________________________________________________________________________________
+## 4. Strategy Pattern
+### 🎯 Purpose
 
-It will still work with the iterator.
+The Strategy Pattern defines a family of algorithms (or behaviors), encapsulates each one, and makes them interchangeable.
+
+Instead of hardcoding if/else statements to choose an algorithm, the Strategy Pattern lets the client plug in the desired algorithm at runtime.
+
+This makes your system:
+
+    Flexible → You can change algorithms without touching client code.
+
+    Extensible → Adding a new algorithm just means creating a new class.
+
+    Open/Closed Principle friendly → No need to modify existing logic.
+
+In my Algorithm + DataStructure example, the Context doesn’t care which algorithm or data structure is being used. It just calls them. The client decides which ones to inject at runtime.
+
+### 🔑 Roles in My Code
+
+#### 1. Strategy Interface (Algorithm, DataStructure)
+    Defines the contract all strategies must follow.
+    Algorithm defines how data should be processed.
+    DataStructure defines how data should be stored/used.
+```python
+class Algorithm(ABC):
+    @abstractmethod
+    def execute(self, data): pass
+
+class DataStructure(ABC):
+    @abstractmethod
+    def use(self): pass
+
+```
+
+#### 2. Concrete Strategies (ConcreteAlgorithmA/B, ConcreteDataStructureA/B)
+
+    Provide actual implementations of algorithms and data structures.
+
+    Each class follows the common interface, so they are interchangeable.
+```python
+class ConcreteAlgorithmA(Algorithm):
+    def execute(self, data):
+        print(f"Algorithm A processing {data}")
+
+class ConcreteAlgorithmB(Algorithm):
+    def execute(self, data):
+        print(f"Algorithm B processing {data}")
+
+class ConcreteDataStructureA(DataStructure):
+    def use(self):
+        print("Using Data Structure A")
+
+class ConcreteDataStructureB(DataStructure):
+    def use(self):
+        print("Using Data Structure B")
+```
+#### 3. Context (Main)
+Holds references to strategies and delegates work to them.
+
+The Context is agnostic to which algorithm/data structure is used — it just calls the interface methods.
+```python
+class Context:
+    def __init__(self, strategy: Algorithm, data_structure: DataStructure):
+        self._strategy = strategy
+        self._data_structure = data_structure
+
+    def execute(self, data):
+        self._data_structure.use()
+        self._strategy.execute(data)
+```
+#### 4. Client (Code Using Strategies)
+The client decides which concrete strategies to plug into the Context.
+
+It can easily switch to different algorithms or data structures without touching the Context code.
+```python
+data = "Sample Data"
+
+context = Context(ConcreteAlgorithmB(), ConcreteDataStructureA())
+context.execute(data)  
+# Using Data Structure A
+# Algorithm B processing Sample Data
+```
+### 📌 Important Detail (Encapsulation of Behavior)
+    The Context never knows the details of algorithms or data structures.
+If tomorrow you add ConcreteAlgorithmC or ConcreteDataStructureC, you don’t touch the Context or client logic.
+The only thing that changes is which strategy you choose when creating the Context.
+This keeps your system flexible and avoids bloated if/else conditions.
