@@ -314,3 +314,96 @@ context.execute(data)
 If tomorrow you add ConcreteAlgorithmC or ConcreteDataStructureC, you don’t touch the Context or client logic.
 The only thing that changes is which strategy you choose when creating the Context.
 This keeps your system flexible and avoids bloated if/else conditions.
+____________________________________________________________________________________________________________________________
+## 5. Template Method Pattern
+### 🎯 Purpose
+
+The Template Method Pattern defines the skeleton of an algorithm in a base class, while letting subclasses redefine specific steps without changing the overall structure.
+
+This makes your system:
+
+    Consistent → The high-level process is fixed.
+
+    Flexible → Subclasses can override details of the process.
+
+    Extensible → New variations only require new subclasses, not rewriting the algorithm.
+
+### 🔑 Roles in My Code
+
+#### 1. Abstract Class (TemplateMethod)
+Defines the template method (template_method) that specifies the algorithm flow.
+It includes:
+
+    Abstract methods (step_one, step_two) → must be implemented by subclasses.
+
+    Hook/Optional method (step_three) → has a default implementation but can be overridden..
+```python
+class TemplateMethod(ABC):
+    def template_method(self):
+        self.step_one()
+        self.step_two()
+        self.step_three()
+
+    @abstractmethod
+    def step_one(self): pass
+
+    @abstractmethod
+    def step_two(self): pass
+
+    def step_three(self):  # Hook
+        print("Default implementation of step three.")
+```
+
+#### 2. Concrete Classes (ConcreteClassA, ConcreteClassB)
+
+Provide implementations of the abstract steps.
+
+    ConcreteClassA → uses the default step_three.
+
+    ConcreteClassB → overrides all three steps, including step_three.
+```python
+class ConcreteClassA(TemplateMethod):
+    def step_one(self):
+        print("ConcreteClassA: Step One")
+
+    def step_two(self):
+        print("ConcreteClassA: Step Two")
+    # step_three comes from base class
+
+
+class ConcreteClassB(TemplateMethod):
+    def step_one(self):
+        print("ConcreteClassB: Step One")
+
+    def step_two(self):
+        print("ConcreteClassB: Step Two")
+
+    def step_three(self):  # overrides optional step
+        print("ConcreteClassB: Step Three")
+```
+#### 3. Template Method Execution (Client Code)
+The client instantiates a concrete class and calls the template method.
+The base class ensures the same process order, while allowing different subclass behavior.
+```python
+obj = ConcreteClassA()
+obj.template_method()
+# ConcreteClassA: Step One
+# ConcreteClassA: Step Two
+# Default implementation of step three.
+
+obj = ConcreteClassB()
+obj.template_method()
+# ConcreteClassB: Step One
+# ConcreteClassB: Step Two
+# ConcreteClassB: Step Three
+```
+### 📌 Important Detail (Algorithm Skeleton)
+    The core algorithm is defined once in the base class (template_method).
+
+    Subclasses cannot change the algorithm structure (the order of steps is fixed).
+
+    Subclasses only fill in or override steps (step_one, step_two, step_three).
+
+    The hook (step_three) provides default behavior and makes customization optional.
+
+    This avoids duplicated algorithm structures across subclasses while still enabling flexibility.
