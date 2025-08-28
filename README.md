@@ -407,3 +407,83 @@ obj.template_method()
     The hook (step_three) provides default behavior and makes customization optional.
 
     This avoids duplicated algorithm structures across subclasses while still enabling flexibility.
+_________________________________________________________________________________________________________________________
+## 6. Command Pattern
+### 🎯 Purpose
+
+The Command Pattern lets you wrap a request (an action to perform) inside an object.
+This makes it easy to:
+
+    Decouple → The object that triggers an action (like a button) doesn’t know how the action is done.
+
+    Re-use → Commands can be reused in different contexts.
+
+    Extend → Adding new actions only needs new command classes, not changes to existing code.
+
+### 🔑 Roles in My Code
+
+#### 1. Command Interface (Command)
+Defines the execute() method.
+
+Every command must implement this method.
+```python
+class Command(ABC):
+    @abstractmethod
+    def execute(self):
+        pass
+```
+
+#### 2. Receiver (CustomerService)
+
+The class that actually knows how to do the work (like adding a customer).
+```python
+class CustomerService:
+    def add_customer(self):
+        print("Customer added.")
+```
+#### 3. Concrete Command (AddCustomerCommand)
+Wraps the action you want to perform (add_customer) into an object.
+
+Calls the right method on the receiver when execute() is triggered.
+```python
+class AddCustomerCommand(Command):
+    def __init__(self, service: CustomerService):
+        self._service = service
+
+    def execute(self):
+        self._service.add_customer()
+```
+#### 4. Invoker (Button)
+The object that triggers the command.
+
+It doesn’t care what the command does, it just calls execute().
+```python
+class Button:
+    def __init__(self, command: Command):
+        self._command = command
+
+    def click(self):
+        self._command.execute()
+```
+#### 5. Client (Setup and Execution)
+Creates the service, wraps it in a command, attaches the command to a button, and then clicks.
+```python
+service  = CustomerService()
+command = AddCustomerCommand(service)
+button  = Button(command)
+button.click()  
+# Output: Customer added.
+```
+### 📌 Important Detail (Algorithm Skeleton)
+    Lets see we want to create a Framework and then use that Framework to 
+    create Applications of different types
+    The framework will be responsible for handling user interactions and executing commands.
+    It doesnt know the specifics of the applications being built.
+    For example: 
+         for a button, when clicked, it should execute a specific command.
+         That button and that execute method will be provided by Framework while
+         the Application defines that command and service, that should execute by clicking
+         that button.
+The button doesn’t know anything about CustomerService.
+The command acts as a bridge between the button and the service.
+If you want a new action (e.g., DeleteCustomerCommand), you just create a new command class — no need to change the Button.
