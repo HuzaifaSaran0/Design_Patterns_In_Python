@@ -487,3 +487,103 @@ button.click()
 The button doesn’t know anything about CustomerService.
 The command acts as a bridge between the button and the service.
 If you want a new action (e.g., DeleteCustomerCommand), you just create a new command class — no need to change the Button.
+___________________________________________________________________________________________________________
+## 7. Observer Pattern
+### 🎯 Purpose
+
+The Observer Pattern lets one object (the Subject) automatically notify and update other objects (the Observers) whenever it changes.
+
+This makes it easy to:
+
+    Decouple → The Subject doesn’t need to know the details of Observers, just that they want updates.
+
+    Re-use → Observers can be attached or removed without changing the Subject.
+
+    Extend → New Observers can be added anytime without changing existing code.
+
+### 🔑 Roles in My Code
+
+#### 1. Observer Interface (Observer)
+Defines the update() method. Every Observer must implement this to react when notified.
+```python
+from abc import ABC, abstractmethod
+
+class Observer(ABC):
+    @abstractmethod
+    def update(self):
+        pass
+```
+
+#### 2. Concrete Observers (file1, file2, file3)
+
+These are the actual classes that react when the Subject notifies them. Each defines its own update() logic.
+```python
+class file1(Observer):
+    def update(self):
+        print("file1 got updated")
+
+class file2(Observer):
+    def update(self):
+        print("file2 got updated")
+
+class file3(Observer):
+    def update(self):
+        print("file3 got updated")
+```
+#### 3. Subject (Subject)
+Keeps a list of observers and provides methods to add/remove them.
+When something changes, it calls notifyObservers() to update all.
+```python
+class Subject:
+    def __init__(self):
+        self._observers = []
+
+    def addObserver(self, observer):
+        self._observers.append(observer)
+
+    def removeObserver(self, observer):
+        self._observers.remove(observer)
+
+    def notifyObservers(self):
+        for observer in self._observers:
+            observer.update()
+```
+#### 4. Concrete Subject (DataSource)
+The actual data holder. When its value changes, it notifies all observers.
+```python
+class DataSource(Subject):
+    def __init__(self):
+        super().__init__()
+        self.value = None
+
+    def get_value(self):
+        return self.value
+
+    def set_value(self, value):
+        self.value = value
+        self.notifyObservers()
+```
+#### 5. Client (Setup and Execution)
+Creates the Subject and Observers, registers the Observers, and changes the value to trigger updates.
+```python
+ds = DataSource()
+ds.addObserver(file1())
+ds.addObserver(file2())
+ds.addObserver(file3())
+
+ds.set_value(10)  
+# Output:
+# file1 got updated
+# file2 got updated
+# file3 got updated
+```
+### 📌 Important Detail (Automatic Update System)
+    The Subject = broadcaster (DataSource).
+
+    The Observers = listeners (file1, file2, file3).
+
+    Whenever the Subject’s value changes → it notifies all Observers → each reacts in its own way.
+
+This way, the Subject never directly depends on the Observers’ code.
+If you add a new observer (e.g., Logger), you just attach it — no changes needed in DataSource.
+__________________________________________________________________________________________________________
