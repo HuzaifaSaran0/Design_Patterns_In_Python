@@ -587,3 +587,92 @@ ds.set_value(10)
 This way, the Subject never directly depends on the Observers’ code.
 If you add a new observer (e.g., Logger), you just attach it — no changes needed in DataSource.
 __________________________________________________________________________________________________________
+## 8. Mediator Pattern
+### 🎯 Purpose
+
+The Mediator Pattern centralizes communication between objects so that they don’t directly talk to each other.
+
+Instead, they send their messages/requests to a Mediator, and the Mediator decides how to forward them.
+
+This makes it easy to:
+
+    Decouple → Users don’t need to know about each other, they only know the Mediator.
+    Organize → The Mediator controls who gets which message.
+    Extend → You can add multiple chat rooms (mediators) without changing User code.
+
+👉 Example: In a **WhatsApp** group, if Alice sends a message, only Bob and Charlie (not Alice herself) receive it. If we have 2 groups, messages in one group don’t go to the other.
+### 🔑 Roles in My Code
+
+#### 1. Mediator Interface (ChatMediator)
+Defines methods for adding users and sending messages.
+```python
+from abc import ABC, abstractmethod
+
+# Mediator Interface
+class Mediator(ABC):
+    @abstractmethod
+    def send_message(self, message: str, sender: "User") -> None:
+        pass
+```
+
+#### 2. Concrete Mediator (ChatRoom)
+
+Implements the mediator logic. Keeps track of users and forwards messages to all except the sender.
+```python
+# Concrete Mediator
+class ChatRoom(Mediator):
+    def __init__(self):
+        self._users = []
+
+    def add_user(self, user: "User") -> None:
+        self._users.append(user)
+
+    def send_message(self, message: str, sender: "User") -> None:
+        for user in self._users:
+            if user != sender:  # don't send back to the sender
+                user.receive(message, sender)
+```
+#### 3. Colleague Interface (User)
+Defines how a user sends and receives messages.
+```python
+# Colleague
+class User:
+    def __init__(self, name: str, mediator: Mediator):
+        self._name = name
+        self._mediator = mediator
+        mediator.add_user(self)
+
+    def send(self, message: str) -> None:
+        print(f"{self._name} sends: {message}")
+        self._mediator.send_message(message, self)
+
+    def receive(self, message: str, sender: "User") -> None:
+        print(f"{self._name} received from {sender._name}: {message}")
+```
+#### 4. Concrete Colleagues (RealUser)
+Actual implementation of the User, interacting only through the Mediator. It could be used but i didn't use it in this code.
+#### 5. Client (Setup and Execution)
+Creates ChatRooms (mediators) and Users. Users send messages via the mediator.
+```python
+# Example Usage
+chatroom1 = ChatRoom()
+chatroom2 = ChatRoom()
+
+alice = User("Alice", chatroom1)
+bob = User("Bob", chatroom1)
+charlie = User("Charlie", chatroom1)
+
+ali = User("Ali", chatroom2)
+# bob2 = User("Bob", chatroom2)
+# charlie2 = User("Charlie", chatroom2)
+
+alice.send("Hello everyone!")
+bob.send("Hi Alice!")
+```
+### 📌 Important Detail (WhatsApp Group Analogy)
+    Mediator = ChatRoom (Group).
+
+    Colleagues = Users.
+A user never directly messages another user → they always go through the mediator.
+This allows multiple groups to exist independently, just like in real chat apps.
+_________________________________________________________________________________________________
