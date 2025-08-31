@@ -676,3 +676,80 @@ bob.send("Hi Alice!")
 A user never directly messages another user → they always go through the mediator.
 This allows multiple groups to exist independently, just like in real chat apps.
 _________________________________________________________________________________________________
+## 9. Chain of Responsibility Pattern
+### 🎯 Purpose
+
+The Chain of Responsibility Pattern allows multiple handlers to process a request sequentially until one of them handles it (or the chain ends).
+
+This makes it easy to:
+
+    Decouple → The sender does not need to know which handler will process the request.
+
+    Flexible → Handlers can be added, removed, or reordered without changing the client.
+
+    Extendable → You can add more handlers for new request types without changing existing code.
+
+👉 Example: In an ATM Machine, when you withdraw money, the machine checks the largest denomination first (e.g., 1000 notes). If the full amount cannot be handled, it passes the remainder down the chain (e.g., to 500, then 100).
+### 🔑 Roles in My Code
+
+#### 1. Handler Interface (ATMHandler)
+Defines a method for handling the request and holds a reference to the next handler.
+```python
+from abc import ABC, abstractmethod
+
+class ATMHandler(ABC):
+    def __init__(self, denomination, next_handler=None):
+        self.denomination = denomination
+        self.next_handler = next_handler
+
+    @abstractmethod
+    def handle(self, amount):
+        pass
+```
+
+#### 2. Concrete Handler (ConcreteATMHandler)
+
+Implements the actual logic for handling requests.
+
+    Tries to process as many notes as possible for its denomination.
+
+    If something is left, it passes the remainder to the next handler.
+```python
+# Concrete Mediator
+class ConcreteATMHandler(ATMHandler):
+    def handle(self, amount):
+        dividend, remainder = divmod(amount, self.denomination)
+
+        if dividend > 0:
+            print(f"Handler{self.denomination} processed {dividend} notes of {self.denomination}")
+
+        if remainder > 0 and self.next_handler:
+            self.next_handler.handle(remainder)
+        elif remainder > 0 and not self.next_handler:
+            print(f"Cannot dispense {remainder}, unsupported amount.")
+```
+#### 3. Client (ATM Machine Setup & Execution)
+The client connects handlers in a chain (1000 → 500 → 100).
+It just sends the request to the first handler, which either handles it or passes it on.
+```python
+# Smallest denomination last
+h100 = ConcreteATMHandler(100)
+h500 = ConcreteATMHandler(500, h100)
+h1000 = ConcreteATMHandler(1000, h500)
+
+print("ATM Machine:")
+h1000.handle(2500)   # 2x1000 + 1x500
+h1000.handle(2600)   # 2x1000 + 1x500 + 1x100
+h1000.handle(2000)   # 2x1000
+h1000.handle(1255)   # 1x1000 + 2x100 + "cannot dispense 55"
+```
+### 📌 Important Detail (ATM Analogy)
+    Handlers = Cash dispensers of different denominations (1000, 500, 100).
+
+    Client = User requesting money.
+
+A request (withdrawal) starts at the highest handler → passes remainder to the next → and so on.
+
+👉 The ATM doesn’t need to know which handler can fully process it. It only knows the entry point (1000 note handler), and the chain takes care of the rest.
+_________________________________________________________________________________________________
+
