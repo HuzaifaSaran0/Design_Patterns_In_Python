@@ -752,4 +752,114 @@ A request (withdrawal) starts at the highest handler → passes remainder to the
 
 👉 The ATM doesn’t need to know which handler can fully process it. It only knows the entry point (1000 note handler), and the chain takes care of the rest.
 _________________________________________________________________________________________________
+## 10. Visitor Pattern
+### 🎯 Purpose
 
+The Visitor Pattern allows you to add new operations to a group of related objects (a hierarchy) without changing their classes.
+
+Instead of putting all possible operations inside the classes, you create a Visitor that “visits” each object and performs the operation.
+
+This makes it easy to:
+
+    Extend → Add new operations without touching the existing class code.
+
+    Separate Concerns → Object structure is separate from the operations performed on them.
+
+    Organize → Keep operations in one place (the visitor), rather than spreading logic across many classes.
+
+👉 Example: Think of a zoo. You have animals: Lion, Elephant, Monkey. Instead of writing methods like feed(), train(), vaccinate() inside each class, you define Visitors: FeedingVisitor, TrainingVisitor, VeterinaryVisitor. The animals stay unchanged, and the visitors define what happens.
+### 🔑 Roles in My Code
+#### 1. Element Interface (Animal)
+Defines an accept(visitor) method that allows a visitor to operate on the object.
+```python
+from abc import ABC, abstractmethod
+
+class Animal(ABC):
+    @abstractmethod
+    def accept(self, visitor: "Visitor") -> None:
+        pass
+```
+
+#### 2. Concrete Elements (Lion, Monkey, Elephant)
+Each animal implements accept to call the right method on the visitor.
+```python
+# Concrete Mediator
+class Lion(Animal):
+    def accept(self, visitor: "Visitor") -> None:
+        visitor.visit_lion(self)
+
+class Monkey(Animal):
+    def accept(self, visitor: "Visitor") -> None:
+        visitor.visit_monkey(self)
+
+class Elephant(Animal):
+    def accept(self, visitor: "Visitor") -> None:
+        visitor.visit_elephant(self)
+```
+#### 3. Visitor Interface
+Declares visit methods for each type of element.
+```python
+class Visitor(ABC):
+    @abstractmethod
+    def visit_lion(self, lion: Lion) -> None: pass
+
+    @abstractmethod
+    def visit_monkey(self, monkey: Monkey) -> None: pass
+
+    @abstractmethod
+    def visit_elephant(self, elephant: Elephant) -> None: pass
+```
+#### 4. Concrete Visitors (FeedingVisitor, SoundVisitor)
+Each visitor implements logic for all animal types.
+```python
+class FeedingVisitor(Visitor):
+    def visit_lion(self, lion: Lion) -> None:
+        print("Feeding the lion with meat.")
+
+    def visit_monkey(self, monkey: Monkey) -> None:
+        print("Feeding the monkey with bananas.")
+
+    def visit_elephant(self, elephant: Elephant) -> None:
+        print("Feeding the elephant with sugarcane.")
+
+
+class SoundVisitor(Visitor):
+    def visit_lion(self, lion: Lion) -> None:
+        print("Lion roars loudly!")
+
+    def visit_monkey(self, monkey: Monkey) -> None:
+        print("Monkey chatters playfully!")
+
+    def visit_elephant(self, elephant: Elephant) -> None:
+        print("Elephant trumpets strongly!")
+```
+#### 5. Client (Zoo)
+The zoo has animals. We can apply different visitors to them without changing the animal classes.
+```python
+# Example usage
+zoo = [Lion(), Monkey(), Elephant()]
+
+feeding = FeedingVisitor()
+sound = SoundVisitor()
+
+print("Feeding Time:")
+for animal in zoo:
+    animal.accept(feeding)
+
+print("\nSound Time:")
+for animal in zoo:
+    animal.accept(sound)
+```
+### 📌 Important Detail (Zoo Analogy)
+    Animals = Elements → They don’t change, they just accept visitors.
+
+    Visitors = Different operations → Feeding, making sounds, training, vaccination, etc.
+
+    Client (Zoo) = Applies visitors to animals → Can add new visitors without touching Lion, Monkey, or Elephant.
+
+This makes the Visitor Pattern perfect when:
+
+    You have a stable class hierarchy.
+
+    You often need to add new operations on them.
+_________________________________________________________________________________________________
