@@ -1,5 +1,6 @@
 # Design Patterns
 #### (Open the Pattern Named file in the repo to get Code and Here in Readme, you can get the understanding of the pattern)
+## BEHAVIORAL DESIGN PATTERNS
 ## 1. Memento Pattern
 
 
@@ -863,3 +864,108 @@ This makes the Visitor Pattern perfect when:
 
     You often need to add new operations on them.
 _________________________________________________________________________________________________
+## STRUCTURAL DESIGN PATTERNS
+_________________________________________________________________________________________________
+## 11. Composite Pattern
+### 🎯 Purpose
+
+The Composite Pattern lets you treat a group of objects and a single object in the same way.
+
+    group of objects -> (composite)
+    single object -> (leaf)
+It’s great when you have tree-like structures.
+Instead of writing special code to handle “single” vs “collection,” you make both implement the same interface.
+
+This makes it easy to:
+
+    Uniformity → Treat single objects and groups the same way.
+
+    Scalability → Build tree-like structures (files/folders, menus, org charts).
+
+    Simplicity → Avoid complex conditionals (if folder then… else file).
+
+👉 Example: Think of a File Explorer. You can call delete() or get_size() on both a single file and a folder (which may contain many files/folders). The client doesn’t care whether it’s a file or folder — both are “file system items.”
+
+### 🔑 Roles in My Code
+#### 1. Component Interface (FileSystemItem)
+Defines the common operations for both leaf and composite.
+```python
+from abc import ABC, abstractmethod
+
+class FileSystemComponent(ABC):
+    @abstractmethod
+    def show(self):
+        pass
+
+    @abstractmethod
+    def delete(self):
+        pass
+```
+
+#### 2. Leaf (File)
+Represents simple objects with no children.
+```python
+# Concrete Mediator
+class File(FileSystemComponent):
+    def show(self):
+        print("Showing file.")
+
+    def delete(self):
+        print("Deleting file.")
+```
+#### 3. Concrete Composite (Folder)
+Represents complex objects that hold children (files or folders).
+```python
+class Folder(FileSystemComponent):
+    def __init__(self):
+        self.children = []
+
+    def add(self, component: FileSystemComponent):
+        self.children.append(component)
+
+    def remove(self, component: FileSystemComponent):
+        self.children.remove(component)
+
+    def show(self):
+        print("Showing folder.")
+        for child in self.children:
+            child.show()
+
+    def delete(self):
+        print("Deleting folder.")
+        for child in self.children:
+            child.delete()
+```
+#### 4. Client (Explorer)
+The client works with FileSystemItem without knowing whether it’s a file or folder.
+```python
+folder1 = Folder()
+# file = File()
+folder1.add(File())
+folder1.add(File())
+folder1.add(Folder())
+
+folder2 = Folder()
+folder2.add(File())
+
+folder1.show()
+folder2.show()
+# folder1.delete()
+# file.show()
+# file.delete()
+```
+### 📌 Important Detail (File Explorer Analogy)
+    File = Leaf → Simple object, no children.
+
+    Folder = Composite → Can hold files or other folders.
+
+    FileSystemItem (interface) = Common type for both.
+
+    Client (Explorer) = Doesn’t care if it’s a file or folder; it just calls .show().
+
+This makes the Composite Pattern perfect when:
+    You have hierarchical structures (files/folders, menus, org charts).
+
+    You want to perform operations uniformly on single objects and groups.
+______________________________________________________________________________________________-
+
